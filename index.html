@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiosco Ana</title>
+  <link rel="icon" href="Logo.png">
+  <meta name="theme-color" content="#2e1d14">
+  <!-- Letra de los títulos (si no carga, se usa otra parecida) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bree+Serif&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="tema.js"></script>
+</head>
+<body>
+
+  <!-- ===== Cabecera (la misma para tienda y administración) ===== -->
+  <header class="cabecera">
+    <div class="cabecera-fila contenedor">
+      <a class="marca" href="#/" aria-label="Kiosco Ana, ir a la tienda">
+        <img src="Logo.png" alt="" class="marca-logo">
+        <span class="marca-texto">
+          <strong>Kiosco Ana</strong>
+          <small>Pedidos y ventas</small>
+        </span>
+      </a>
+
+      <nav class="menu" aria-label="Principal">
+        <a href="#/" id="nav-tienda">Tienda</a>
+        <a href="#/admin" id="nav-admin">Administración</a>
+      </nav>
+
+      <button type="button" id="btn-tema" class="btn-icono" onclick="cambiarTema()"></button>
+    </div>
+    <div class="toldo" aria-hidden="true"></div>
+  </header>
+
+
+  <main>
+
+    <!-- ===== TIENDA ===== -->
+    <section id="vista-tienda" class="contenedor">
+
+      <div class="portada">
+        <div class="portada-texto">
+          <p class="portada-etiqueta">Kiosco Ana</p>
+          <h1>Nuestros productos</h1>
+          <p>Elige lo que quieras, arma tu pedido y confirma tus datos.</p>
+          <a class="btn-principal" href="#productos" onclick="document.getElementById('productos').scrollIntoView({ behavior: 'smooth' }); return false;">Ver productos</a>
+        </div>
+        <div class="portada-logo">
+          <img src="Logo.png" alt="Logo de Kiosco Ana">
+        </div>
+      </div>
+
+      <div class="tienda" id="productos">
+        <div class="tienda-catalogo">
+
+          <!-- Buscador, filtros y tipo de vista -->
+          <div class="herramientas">
+            <label class="buscador">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>
+              <input type="search" id="txt-buscar" placeholder="Buscar" autocomplete="off">
+            </label>
+            <button type="button" id="btn-filtros" class="btn-secundario" aria-expanded="false">Filtros</button>
+            <div class="vista-botones" role="group" aria-label="Tipo de vista">
+              <button type="button" id="btn-vista-cuadros" class="btn-vista activo" title="Ver en cuadros" aria-label="Ver en cuadros">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+              </button>
+              <button type="button" id="btn-vista-lista" class="btn-vista" title="Ver en lista" aria-label="Ver en lista">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="4" height="4" rx="1.2"/><rect x="3" y="10" width="4" height="4" rx="1.2"/><rect x="3" y="16" width="4" height="4" rx="1.2"/><rect x="9.5" y="4.3" width="11.5" height="3.4" rx="1.7"/><rect x="9.5" y="10.3" width="11.5" height="3.4" rx="1.7"/><rect x="9.5" y="16.3" width="11.5" height="3.4" rx="1.7"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="panel-filtros" class="panel-filtros" hidden>
+            <label>Tamaño
+              <select id="sel-tamano"></select>
+            </label>
+            <label>Sabor
+              <select id="sel-sabor"></select>
+            </label>
+            <label class="casilla">
+              <input type="checkbox" id="chk-disponibles"> Solo disponibles
+            </label>
+            <button type="button" id="btn-limpiar" class="enlace">Quitar filtros</button>
+          </div>
+
+          <div id="categorias" class="categorias" role="group" aria-label="Categorías"></div>
+
+          <div class="resultados-fila">
+            <p id="lbl-resultados" class="resultados" aria-live="polite"></p>
+            <label class="orden">Ordenar
+              <select id="sel-orden">
+                <option value="destacados">Disponibles primero</option>
+                <option value="precio-asc">Precio: menor a mayor</option>
+                <option value="precio-desc">Precio: mayor a menor</option>
+                <option value="nombre">Nombre A-Z</option>
+              </select>
+            </label>
+          </div>
+          <div id="lista-productos" class="productos vista-cuadros"><span class="solo-lectores" role="status">Cargando productos...</span>
+            <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+            <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+        </div>
+
+        <!-- Pedido -->
+        <aside id="panel-pedido" class="pedido" aria-label="Tu pedido">
+          <div class="pedido-cabecera">
+            <h2>Tu pedido</h2>
+            <button type="button" class="btn-cerrar-pedido" id="btn-cerrar-pedido" aria-label="Cerrar pedido">Cerrar</button>
+          </div>
+          <div id="pedido-items" class="pedido-items"></div>
+          <div class="pedido-total">
+            <span>Total</span>
+            <strong id="lbl-total">C$ 0.00</strong>
+          </div>
+          <button type="button" id="btn-confirmar" class="btn-principal ancho" disabled>Confirmar pedido</button>
+          <button type="button" id="btn-vaciar" class="enlace centrado" hidden>Vaciar pedido</button>
+        </aside>
+      </div>
+
+      <!-- Barra inferior (solo celulares) -->
+      <div class="barra-movil" id="barra-movil" hidden>
+        <span><span id="lbl-cantidad-movil">0</span> <span id="lbl-unidad-movil">productos</span> &middot; <strong id="lbl-total-movil">C$ 0.00</strong></span>
+        <button type="button" id="btn-ver-pedido" class="btn-principal">Ver pedido</button>
+      </div>
+    </section>
+
+
+    <!-- ===== ADMINISTRACIÓN ===== -->
+    <section id="vista-admin" class="contenedor" hidden>
+
+      <!-- Acceso -->
+      <div id="admin-login" class="acceso">
+        <img src="Logo.png" alt="" class="acceso-logo">
+        <h1>Administración</h1>
+        <p>Ingresa la clave para manejar productos, ventas y datos de la tienda.</p>
+        <form id="form-login">
+          <label>Clave
+            <input type="password" id="txt-clave" autocomplete="current-password">
+          </label>
+          <p id="msg-clave" class="msg-error" hidden>Clave incorrecta.</p>
+          <button type="submit" class="btn-principal ancho">Entrar</button>
+        </form>
+      </div>
+
+      <!-- Panel -->
+      <div id="admin-panel" hidden>
+        <div class="titulo-pagina fila-titulo">
+          <div>
+            <h1>Administración</h1>
+            <p>Productos, ventas y datos de la tienda.</p>
+          </div>
+          <button type="button" id="btn-salir" class="btn-secundario">Cerrar sesión</button>
+        </div>
+
+        <p id="estado-bd" class="estado-bd" role="status"></p>
+
+        <div class="resumen">
+          <div class="dato">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>
+            <div><span>Productos</span><strong id="res-productos">0</strong></div>
+          </div>
+          <div class="dato">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3L12 4z"/><path d="M12 10v4M12 17v.5"/></svg>
+            <div><span>Stock bajo</span><strong id="res-stock-bajo">0</strong></div>
+          </div>
+          <div class="dato">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-3-2-3 2-3-2-3 2V4z"/><path d="M9 9h6M9 13h6"/></svg>
+            <div><span>Ventas</span><strong id="res-ventas">0</strong></div>
+          </div>
+          <div class="dato">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+            <div><span>Total vendido</span><strong id="res-total">C$ 0.00</strong></div>
+          </div>
+        </div>
+
+        <div class="tarjeta grafico">
+          <div class="grafico-cabecera">
+            <h2>Ventas de los últimos 7 días</h2>
+            <span id="grafico-resumen"></span>
+          </div>
+          <div id="grafico-ventas-barras" class="grafico-barras" role="img" aria-label="Ventas por día de los últimos 7 días"></div>
+        </div>
+
+        <div class="pestanas" role="tablist">
+          <button type="button" role="tab" data-pestana="productos" class="activo">Productos</button>
+          <button type="button" role="tab" data-pestana="ventas">Ventas</button>
+          <button type="button" role="tab" data-pestana="ajustes">Ajustes</button>
+        </div>
+
+        <!-- Productos -->
+        <div id="pest-productos" class="admin-productos">
+          <form id="form-producto" class="tarjeta form-producto" autocomplete="off">
+            <h2 id="titulo-form">Agregar producto</h2>
+
+            <label>Nombre
+              <input type="text" id="p-nombre" required>
+            </label>
+            <div class="dos">
+              <label>Precio (C$)
+                <input type="number" id="p-precio" min="0.01" step="0.01" required>
+              </label>
+              <label>Stock
+                <input type="number" id="p-stock" min="0" step="1" required>
+              </label>
+            </div>
+            <label>Categoría
+              <select id="p-categoria"></select>
+            </label>
+            <div class="dos">
+              <label>Tamaño
+                <input type="text" id="p-tamano" placeholder="Ej: 16 oz, unidad">
+              </label>
+              <label>Sabor o tipo
+                <input type="text" id="p-sabor" placeholder="Ej: limón">
+              </label>
+            </div>
+            <label>Fecha de vencimiento
+              <input type="date" id="p-vencimiento">
+            </label>
+            <label>Descripción
+              <input type="text" id="p-descripcion" placeholder="Una línea corta">
+            </label>
+            <label>Receta o ingredientes
+              <textarea id="p-receta" rows="3" placeholder="Ingredientes y preparación"></textarea>
+            </label>
+
+            <div class="imagen-campo">
+              <span class="etiqueta-campo">Imagen</span>
+              <div class="imagen-fila">
+                <img id="p-vista" class="imagen-previa" alt="" hidden>
+                <input type="file" id="p-imagen" accept="image/*">
+                <button type="button" id="btn-quitar-imagen" class="enlace" hidden>Quitar imagen</button>
+              </div>
+            </div>
+
+            <div class="botones-form">
+              <button type="submit" id="btn-guardar" class="btn-principal">Agregar</button>
+              <button type="button" id="btn-cancelar" class="btn-secundario" hidden>Cancelar</button>
+            </div>
+          </form>
+
+          <div class="tarjeta">
+            <div class="tarjeta-cabecera">
+              <h2>Inventario</h2>
+              <input type="search" id="txt-buscar-admin" class="buscar-admin" placeholder="Buscar en el inventario">
+            </div>
+            <div class="tabla-envoltura">
+              <table class="tabla">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th class="col-media">Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th class="col-media">Vence</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="cuerpo-inventario"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ventas -->
+        <div id="pest-ventas" class="tarjeta" hidden>
+          <div class="tarjeta-cabecera">
+            <h2>Historial de ventas</h2>
+            <button type="button" id="btn-borrar-ventas" class="btn-peligro">Borrar historial</button>
+          </div>
+          <div class="tabla-envoltura">
+            <table class="tabla">
+              <thead>
+                <tr><th>Fecha</th><th>Cliente</th><th>Detalle</th><th>Total</th></tr>
+              </thead>
+              <tbody id="cuerpo-ventas"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Ajustes -->
+        <div id="pest-ajustes" class="ajustes" hidden>
+          <form id="form-contacto" class="tarjeta" autocomplete="off">
+            <h2>Datos de contacto</h2>
+            <p class="ayuda">Aparecen al final de la tienda. El teléfono también se usa para que el cliente te envíe su pedido por WhatsApp.</p>
+            <label>Teléfono (con código de país)
+              <input type="tel" id="c-telefono" placeholder="Ej: 505 8888 8888">
+            </label>
+            <label>Correo
+              <input type="email" id="c-correo" placeholder="Ej: kioscoana@correo.com">
+            </label>
+            <button type="submit" class="btn-principal">Guardar contacto</button>
+          </form>
+
+          <form id="form-token" class="tarjeta" autocomplete="off">
+            <h2>Base de datos</h2>
+            <p class="ayuda">Los productos se guardan en <strong>KioscoAna.db</strong>. Modo actual: <strong id="lbl-modo"></strong>.</p>
+            <p id="nota-servidor" class="ayuda" hidden>Para tener una copia en tu computadora, ejecuta <strong>npm run vigilar</strong> en la carpeta del proyecto (ver LEEME.txt).</p>
+            <div id="bloque-token">
+              <label>Token de GitHub
+                <input type="password" id="txt-token" placeholder="github_pat_...">
+              </label>
+              <p class="ayuda">Se guarda solo en este navegador. Debe ser un token &quot;fine-grained&quot; solo para este repositorio, con permiso <em>Contents: Read and write</em>.</p>
+              <div class="botones-form">
+                <button type="submit" class="btn-principal">Conectar</button>
+                <button type="button" id="btn-quitar-token" class="btn-secundario">Quitar token</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+  <!-- ===== Pie de página ===== -->
+  <footer class="pie">
+    <div class="contenedor pie-fila">
+      <div class="pie-marca">
+        <strong>Kiosco Ana</strong>
+        <span>Frescos, repostería y chiverías.</span>
+      </div>
+      <div class="pie-contacto" id="pie-contacto">
+        <h2>Contáctanos</h2>
+        <p id="pie-telefono" hidden>Teléfono: <a id="enlace-telefono" href="#"></a></p>
+        <p id="pie-correo" hidden>Correo: <a id="enlace-correo" href="#"></a></p>
+        <p id="pie-vacio">Pronto publicaremos nuestros datos de contacto.</p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ===== Ventanas ===== -->
+  <dialog id="dlg-info" class="ventana">
+    <div id="info-contenido"></div>
+  </dialog>
+
+  <dialog id="dlg-pedido" class="ventana">
+    <form id="form-pedido" method="dialog">
+      <h2>Datos para tu pedido</h2>
+      <div id="resumen-pedido" class="resumen-pedido"></div>
+      <label>Nombre completo
+        <input type="text" id="cli-nombre" required>
+      </label>
+      <label>Teléfono
+        <input type="tel" id="cli-telefono" placeholder="Ej: 8888 8888" minlength="8" required>
+      </label>
+      <label>Dirección
+        <textarea id="cli-direccion" rows="2" placeholder="Barrio, calle, número de casa" required></textarea>
+      </label>
+      <label>Referencia (opcional)
+        <input type="text" id="cli-referencia" placeholder="Ej: frente a la pulpería">
+      </label>
+      <label>Nota para el pedido (opcional)
+        <input type="text" id="cli-nota" placeholder="Ej: sin hielo">
+      </label>
+      <div class="botones-form">
+        <button type="submit" class="btn-principal">Realizar pedido</button>
+        <button type="button" id="btn-volver-pedido" class="btn-secundario">Volver</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-exito" class="ventana">
+    <div id="exito-contenido"></div>
+  </dialog>
+
+  <!-- Avisos cortos -->
+  <div id="avisos" class="avisos" aria-live="polite"></div>
+
+  <script src="datos.js"></script>
+  <script src="tienda.js"></script>
+  <script src="admin.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+KIOSCO ANA - TIENDA + ADMINISTRACION (una sola web con base de datos SQLite)
+
+Archivos
+- index.html, styles.css, tema.js, datos.js, tienda.js, admin.js, app.js: la web
+  (la tienda y la administracion estan en la misma pagina; admin.html solo redirige).
+- server.js: servidor con la API y la base de datos (Render o npm start).
+- KioscoAna.db: base de datos SQLite (vacia al inicio). Tablas: Productos, Ventas, Config.
+- sincronizar.js: copia lo de Render a KioscoAna.db de tu computadora.
+- render.yaml: configuracion para Render.
+- lib/: libreria SQLite para el modo GitHub Pages. No la borres.
+
+
+1. SUBIR A GITHUB
+   Crea el repositorio y sube todo el contenido de esta carpeta (git add, commit, push).
+   No subas sincronizar.config.json (ya esta en .gitignore).
+
+
+2. PUBLICAR EN RENDER
+   1) En render.com: New > Web Service > conecta tu repositorio de GitHub.
+   2) Runtime: Node. Build Command: npm install. Start Command: node server.js
+   3) Environment: agrega
+        ADMIN_CLAVE = la clave que quieras para entrar a Administracion
+        NODE_VERSION = 22.22.0
+        TZ = America/Managua
+   4) Datos permanentes:
+      - Plan de pago (starter): agrega un Disk (Add Disk) con Mount Path /var/data y
+        agrega la variable DATABASE_PATH = /var/data/KioscoAna.db
+        (o usa render.yaml: New > Blueprint, que ya trae todo esto).
+      - Plan gratis: Render NO guarda archivos entre reinicios. La base se borra cuando
+        el servicio se duerme (15 min sin visitas), se reinicia o se vuelve a publicar.
+        Para no perder datos usa el paso 3 (copia en tu computadora) y deja
+        "npm run vigilar" abierto. Ver la nota al final.
+   5) Abre la direccion que te da Render (https://tu-servicio.onrender.com).
+      Administracion > clave (ADMIN_CLAVE) > agrega tus productos.
+   Los pedidos de los clientes llegan solos a la base y salen en Administracion > Ventas.
+
+
+3. COPIA EN TU COMPUTADORA (KioscoAna.db local)
+   1) Instala Node.js 22 o superior.
+   2) Copia sincronizar.config.ejemplo.json como sincronizar.config.json y escribe:
+        url   = la direccion de tu servicio en Render
+        clave = la misma ADMIN_CLAVE
+   3) En una terminal, dentro de la carpeta del proyecto:
+        npm run sincronizar     copia una vez
+        npm run vigilar         copia cada minuto (deja la ventana abierta)
+        npm run restaurar       sube la base de tu computadora a Render
+   4) Abre KioscoAna.db con DB Browser for SQLite: veras Productos, Ventas y Config.
+   - Antes de cambiar la base local se guarda una copia diaria en la carpeta "respaldos".
+   - Si Render se queda sin datos (se reinicio) y tu computadora si los tiene, con
+     "npm run vigilar" se restauran solos. Sin vigilar, la copia no se hace para no
+     perder nada, y puedes usar "npm run restaurar".
+   - No uses "npm start" y "npm run vigilar" al mismo tiempo en la misma carpeta.
+
+   Nota para el plan gratis: lo que pase mientras tu computadora esta apagada y Render
+   se reinicia (productos o pedidos nuevos) no se puede recuperar. Con disco persistente
+   (plan de pago) eso no ocurre.
+
+
+4. USAR SOLO EN TU COMPUTADORA
+   npm start   y entra a http://localhost:3000
+   La clave por defecto es admin123 (cambia con la variable ADMIN_CLAVE).
+
+
+5. GITHUB PAGES (opcional)
+   Tambien funciona en GitHub Pages sin servidor: en Administracion > Ajustes se pega un
+   token de GitHub (fine-grained, solo ese repositorio, Contents: Read and write) y la web
+   guarda KioscoAna.db en el repositorio. En ese modo la clave es CLAVE_ADMIN de admin.js.
+   Ojo: si el repositorio es publico, KioscoAna.db tambien lo es.

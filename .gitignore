@@ -1,0 +1,7 @@
+# Archivos que no deben subirse
+node_modules/
+*.log
+# Contiene la clave del administrador
+sincronizar.config.json
+# Copias de seguridad de la base local
+respaldos/

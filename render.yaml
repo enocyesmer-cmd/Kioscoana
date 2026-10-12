@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: kioscoana
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /salud
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: TZ
+        value: America/Managua
+      - key: ADMIN_CLAVE
+        sync: false
