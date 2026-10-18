@@ -16,6 +16,8 @@ const CARPETA = __dirname;
 const ARCHIVO_DB = process.env.DATABASE_PATH || path.join(CARPETA, 'KioscoAna.db');
 const CLAVE_ADMIN = process.env.ADMIN_CLAVE || 'admin123';
 const CATEGORIAS = ['Frescos', 'Repostería', 'Chiverías'];
+// Hora en que arrancó el servidor. sincronizar.js la usa para saber si Render se reinició.
+const INICIO_SERVIDOR = new Date().toISOString();
 
 if (!process.env.ADMIN_CLAVE) {
   console.warn('Aviso: usando la clave por defecto (admin123). Define ADMIN_CLAVE para cambiarla.');
@@ -341,7 +343,7 @@ async function manejarApi(req, res, ruta) {
     if (!esAdmin(req)) return responderJson(res, 401, { ok: false, error: 'Sesión no válida.' });
 
     if (metodo === 'GET' && ruta === '/api/admin/datos') {
-      return responderJson(res, 200, { inventario: leerProductos(), ventas: leerVentas(), config: leerConfig() });
+      return responderJson(res, 200, { inventario: leerProductos(), ventas: leerVentas(), config: leerConfig(), inicio: INICIO_SERVIDOR });
     }
 
     if (metodo === 'POST' && ruta === '/api/admin/productos') {
@@ -391,6 +393,64 @@ async function manejarApi(req, res, ruta) {
 
   responderJson(res, 404, { ok: false, error: 'No existe.' });
 }
+
+
+// Productos iniciales
+// Si la base es nueva (nunca tuvo productos) se cargan los de productos_iniciales.json,
+// con sus fotos de la carpeta imagenes/. Así la tienda no arranca vacía cuando Render
+// reinicia o se usa un disco nuevo. Si la base ya tuvo productos (aunque se hayan
+// borrado) no se vuelve a cargar nada.
+
+function sembrarProductosIniciales() {
+  const hay = db.prepare('SELECT COUNT(*) AS n FROM Productos').get().n;
+  const usada = db.prepare("SELECT COUNT(*) AS n FROM sqlite_sequence WHERE name = 'Productos'").get().n;
+  if (hay > 0 || usada > 0) return;
+
+  const archivo = path.join(CARPETA, 'productos_iniciales.json');
+  if (!fs.existsSync(archivo)) return;
+
+  let lista;
+  try {
+    lista = JSON.parse(fs.readFileSync(archivo, 'utf8'));
+  } catch (e) {
+    console.warn('No se pudo leer productos_iniciales.json:', e.message);
+    return;
+  }
+  if (!Array.isArray(lista)) return;
+
+  const insertar = db.prepare(`
+    INSERT INTO Productos (nombre, precio, stock, categorias, tamano, sabor, vencimiento, descripcion, receta, imagen)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  db.exec('BEGIN');
+  try {
+    let cargados = 0;
+    lista.forEach(item => {
+      let imagen = '';
+      if (item.imagen) {
+        try {
+          const bytes = fs.readFileSync(path.join(CARPETA, 'imagenes', path.basename(String(item.imagen))));
+          imagen = 'data:image/jpeg;base64,' + bytes.toString('base64');
+        } catch (e) {
+          console.warn('Sin foto para ' + item.nombre + ': ' + item.imagen);
+        }
+      }
+      const r = limpiarProducto(Object.assign({}, item, { imagen: imagen }));
+      if (r.error) { console.warn('Producto inicial "' + item.nombre + '" omitido: ' + r.error); return; }
+      const p = r.valor;
+      insertar.run(p.nombre, p.precio, p.stock, p.categoria, p.tamano, p.sabor, p.vencimiento, p.descripcion, p.receta, p.imagen);
+      cargados++;
+    });
+    db.exec('COMMIT');
+    console.log('Productos iniciales cargados: ' + cargados);
+  } catch (error) {
+    db.exec('ROLLBACK');
+    console.warn('No se pudieron cargar los productos iniciales:', error.message);
+  }
+}
+
+sembrarProductosIniciales();
 
 
 // Archivos de la web (solo estos; la base de datos y el servidor no se entregan)

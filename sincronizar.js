@@ -118,6 +118,19 @@ function escribirLocal(datos) {
   }
 }
 
+// Hora de arranque de Render que se vio la última vez. Si cambia, Render se reinició.
+const ARCHIVO_INICIO = path.join(CARPETA_RESPALDOS, 'inicio_render.txt');
+
+function leerInicioConocido() {
+  try { return fs.readFileSync(ARCHIVO_INICIO, 'utf8').trim(); } catch (e) { return ''; }
+}
+
+function guardarInicioConocido(inicio) {
+  if (!inicio) return;
+  fs.mkdirSync(CARPETA_RESPALDOS, { recursive: true });
+  fs.writeFileSync(ARCHIVO_INICIO, String(inicio));
+}
+
 // Una copia de la base por día, antes de cambiarla (se guardan las últimas 14)
 function hacerRespaldo() {
   const hoy = new Date().toISOString().slice(0, 10);
@@ -177,6 +190,8 @@ async function restaurar(token, confirmar) {
   }
   const resultado = await llamar('PUT', '/api/admin/restaurar', local, token);
   console.log('Render restaurado: ' + resultado.productos + ' productos y ' + resultado.ventas + ' ventas.');
+  const despues = await llamar('GET', '/api/admin/datos', null, token);
+  guardarInicioConocido(despues.inicio);
 }
 
 async function sincronizar() {
@@ -185,13 +200,19 @@ async function sincronizar() {
   const local = leerLocal();
   const hayLocal = local.inventario.length > 0 || local.ventas.length > 0;
 
-  // Render sin nada pero con datos aquí: probablemente Render se reinició y perdió los archivos
-  if (estaVacio(remoto) && hayLocal) {
+  // Render sin nada pero con datos aquí: probablemente Render se reinició y perdió los archivos.
+  // Como Render ahora arranca con los productos iniciales, un reinicio también se nota
+  // porque cambia la hora de arranque del servidor.
+  const inicioConocido = leerInicioConocido();
+  const seReinicio = inicioConocido !== '' && !!remoto.inicio && remoto.inicio !== inicioConocido;
+
+  if ((estaVacio(remoto) || seReinicio) && hayLocal) {
+    const motivo = estaVacio(remoto) ? 'Render está vacío (se reinició)' : 'Render se reinició y volvió a sus datos iniciales';
     if (argumentos.indexOf('--sin-auto-restaurar') === -1 && argumentos.indexOf('--vigilar') !== -1) {
-      console.log('Render está vacío (se reinició). Restaurando desde esta computadora...');
+      console.log(motivo + '. Restaurando desde esta computadora...');
       await restaurar(token, false);
     } else {
-      console.log('Render está vacío y esta computadora tiene datos (' + resumen(local) + ').');
+      console.log(motivo + ' y esta computadora tiene datos (' + resumen(local) + ').');
       console.log('No se copió nada para no perderlos. Para devolverlos a Render usa: npm run restaurar');
     }
     return;
@@ -199,6 +220,7 @@ async function sincronizar() {
 
   hacerRespaldo();
   escribirLocal(remoto);
+  guardarInicioConocido(remoto.inicio);
   console.log(new Date().toLocaleTimeString() + '  Copiado desde Render: ' + resumen(remoto) + '.');
 }
 

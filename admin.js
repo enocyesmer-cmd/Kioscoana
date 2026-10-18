@@ -40,6 +40,7 @@ async function prepararAdmin() {
   await cargarDatos();
   mostrarEstadoInicial();
   limpiarFormulario();
+  iniciarVentasVistas();
   renderizarAdmin();
 }
 
@@ -111,6 +112,12 @@ function mostrarPestana(nombre) {
   ['productos', 'ventas', 'ajustes'].forEach(p => {
     document.getElementById('pest-' + p).hidden = p !== nombre;
   });
+
+  if (nombre === 'ventas') {
+    idVentaAntes = idVentaVista;
+    registrarVentasVistas();
+    renderizarVentas();
+  }
 }
 
 
@@ -122,6 +129,7 @@ function renderizarAdmin() {
   renderizarInventarioAdmin();
   renderizarVentas();
   renderizarAjustes();
+  actualizarInsigniaVentas();
 }
 
 function renderizarResumen() {
@@ -248,7 +256,7 @@ function renderizarVentas() {
     const venta = ventas[i];
     html += `
       <tr>
-        <td data-etiqueta="Fecha">${escapar(formatearFechaHora(venta.fecha))}</td>
+        <td data-etiqueta="Fecha">${escapar(formatearFechaHora(venta.fecha))}${Number(venta.id) > idVentaAntes ? ' <span class="marca-estado verde">Nuevo</span>' : ''}</td>
         <td data-etiqueta="Cliente">${textoCliente(venta.cliente)}</td>
         <td data-etiqueta="Detalle">${escapar(venta.detalle)}</td>
         <td data-etiqueta="Total"><strong>${dinero(venta.total)}</strong></td>
@@ -449,6 +457,89 @@ function quitarImagen() {
 }
 
 
+// Ventas nuevas
+// El administrador ve cuándo un cliente compra: número en la pestaña Ventas, marca
+// "Nuevo" en la lista y un aviso. Funciona con el servidor (Render o npm start).
+
+const CLAVE_VENTA_VISTA = 'kioscoAna_ultima_venta_vista';
+let idVentaVista = 0;    // última venta que el administrador ya vio
+let idVentaAntes = 0;    // lo que sea mayor a esto se marca como "Nuevo"
+
+function ultimaVentaId() {
+  let mayor = 0;
+  ventas.forEach(v => { if (Number(v.id) > mayor) mayor = Number(v.id); });
+  return mayor;
+}
+
+function guardarVentaVista(id) {
+  try { localStorage.setItem(CLAVE_VENTA_VISTA, String(id)); } catch (e) {}
+}
+
+function iniciarVentasVistas() {
+  const ultima = ultimaVentaId();
+  let vista = ultima;   // la primera vez no se marca nada como nuevo
+  try {
+    const guardado = localStorage.getItem(CLAVE_VENTA_VISTA);
+    if (guardado !== null) vista = Math.min(Number(guardado) || 0, ultima);
+  } catch (e) {}
+
+  idVentaVista = vista;
+  idVentaAntes = vista;
+  guardarVentaVista(vista);
+
+  if (!document.getElementById('pest-ventas').hidden) registrarVentasVistas();
+}
+
+// Da por vistas todas las ventas que hay ahora
+function registrarVentasVistas() {
+  idVentaVista = ultimaVentaId();
+  guardarVentaVista(idVentaVista);
+  actualizarInsigniaVentas();
+}
+
+function actualizarInsigniaVentas() {
+  const insignia = document.getElementById('insignia-ventas');
+  if (!insignia) return;
+  const nuevas = ventas.filter(v => Number(v.id) > idVentaVista).length;
+  insignia.textContent = nuevas > 99 ? '99+' : nuevas;
+  insignia.hidden = nuevas === 0;
+}
+
+let revisandoVentas = false;
+
+async function revisarVentasNuevas() {
+  if (revisandoVentas || modo !== 'servidor' || !haySesionAdmin() || document.hidden) return;
+  if (location.hash.indexOf('#/admin') !== 0) return;
+
+  revisandoVentas = true;
+  try {
+    const ultimaAntes = ultimaVentaId();
+    const errorAntes = errorCarga;
+    await cargarDatos();
+    if (errorAntes === '') errorCarga = '';   // un fallo de conexión pasajero no daña la tienda
+
+    const nuevas = ventas.filter(v => Number(v.id) > ultimaAntes);
+    if (nuevas.length === 1) {
+      const c = nuevas[0].cliente || {};
+      avisar('Nuevo pedido' + (c.nombre ? ' de ' + c.nombre : '') + ': ' + dinero(nuevas[0].total));
+    } else if (nuevas.length > 1) {
+      avisar(nuevas.length + ' pedidos nuevos.');
+    }
+
+    if (haySesionAdmin()) {
+      if (!document.getElementById('pest-ventas').hidden) registrarVentasVistas();
+      renderizarResumen();
+      renderizarGrafico();
+      renderizarInventarioAdmin();
+      renderizarVentas();
+      actualizarInsigniaVentas();
+    }
+  } finally {
+    revisandoVentas = false;
+  }
+}
+
+
 // Ajustes
 
 async function guardarContacto(e) {
@@ -500,6 +591,9 @@ function quitarToken() {
 function iniciarAdmin() {
   llenarCategorias();
   limpiarFormulario();
+
+  // Cada 20 segundos se revisa si algún cliente hizo un pedido
+  setInterval(revisarVentasNuevas, 20000);
 
   document.getElementById('form-login').addEventListener('submit', entrarAdmin);
   document.getElementById('btn-salir').addEventListener('click', cerrarSesionAdmin);

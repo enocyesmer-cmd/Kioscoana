@@ -4,7 +4,8 @@ Archivos
 - index.html, styles.css, tema.js, datos.js, tienda.js, admin.js, app.js: la web
   (la tienda y la administracion estan en la misma pagina; admin.html solo redirige).
 - server.js: servidor con la API y la base de datos (Render o npm start).
-- KioscoAna.db: base de datos SQLite (vacia al inicio). Tablas: Productos, Ventas, Config.
+- KioscoAna.db: base de datos SQLite (trae los 16 productos iniciales). Tablas: Productos, Ventas, Config.
+- productos_iniciales.json y carpeta imagenes/: los productos iniciales con sus fotos.
 - sincronizar.js: copia lo de Render a KioscoAna.db de tu computadora.
 - render.yaml: configuracion para Render.
 - lib/: libreria SQLite para el modo GitHub Pages. No la borres.
@@ -66,3 +67,22 @@ Archivos
    token de GitHub (fine-grained, solo ese repositorio, Contents: Read and write) y la web
    guarda KioscoAna.db en el repositorio. En ese modo la clave es CLAVE_ADMIN de admin.js.
    Ojo: si el repositorio es publico, KioscoAna.db tambien lo es.
+
+
+6. PRODUCTOS INICIALES
+   KioscoAna.db ya trae 16 productos con foto: 9 bebidas (categoria Frescos, tamano 500 ml),
+   4 de Reposteria y 3 de Chiverias. No hay categorias nuevas.
+   - En el plan gratis de Render, cada reinicio deja la base que esta subida a GitHub. Por eso
+     estos productos siempre aparecen. Lo que se agregue o cambie desde Administracion
+     (productos nuevos, precios, stock, ventas) se pierde en el reinicio, salvo que uses
+     "npm run vigilar" (paso 3) o un disco de pago (paso 2).
+   - Para dejar un cambio fijo: "npm run sincronizar" y sube a GitHub el KioscoAna.db de tu
+     computadora (git add, commit, push).
+   - Si el servidor arranca con una base nueva y vacia (por ejemplo un disco nuevo), carga estos
+     productos una sola vez. Si la base ya tuvo productos, no los vuelve a cargar.
+   - Precios y existencias son de ejemplo: ajustalos en Administracion.
+   - La sincronizacion (paso 3) tambien nota cuando Render se reinicia y devuelve tus datos.
+
+7. AVISO DE PEDIDOS NUEVOS (Administracion, con servidor)
+   Cuando un cliente hace un pedido, en Administracion aparece un aviso, un numero en la
+   pestana Ventas y la marca "Nuevo" en la venta. Se revisa solo cada 20 segundos.
