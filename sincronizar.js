@@ -1,11 +1,7 @@
-// Copia los datos de Render al archivo KioscoAna.db de esta computadora.
-//
-//   node sincronizar.js               copia una vez
-//   node sincronizar.js --vigilar     copia cada minuto (deja la ventana abierta)
-//   node sincronizar.js --restaurar   sube la base de esta computadora a Render
-//
+
+
 // Datos de conexión: archivo sincronizar.config.json o las variables
-// RENDER_URL y ADMIN_CLAVE (ver LEEME.txt).
+
 
 const fs = require('fs');
 const path = require('path');

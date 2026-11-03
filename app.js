@@ -1,5 +1,5 @@
 // Arranque y navegación. La tienda y la administración son una sola página:
-// #/ muestra la tienda y #/admin la administración.
+
 
 // Aviso corto que desaparece solo
 function mostrarAviso(texto) {

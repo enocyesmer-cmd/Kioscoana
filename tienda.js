@@ -13,9 +13,9 @@ let pedido = [];
 
 // Dibujos de las categorías
 const ICONOS_CATEGORIA = {
-  Frescos: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10l-1.2 11a2 2 0 0 1-2 1.8h-3.6a2 2 0 0 1-2-1.8L7 8z"/><path d="M6 8h12M13 8l2-5h3"/></svg>',
-  'Repostería': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14l-1.5 8h-11L5 12z"/><path d="M6 12a6 5 0 0 1 12 0M12 7V4"/></svg>',
-  'Chiverías': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>'
+  Frescos: icono('bebida'),
+  'Repostería': icono('pastel'),
+  'Chiverías': icono('snack')
 };
 
 
@@ -141,7 +141,7 @@ function htmlProducto(prod) {
         <span class="precio">${dinero(prod.precio)}</span>
         <div class="producto-botones">
           <button type="button" class="btn-secundario peq" data-info="${prod.id}">Info</button>
-          <button type="button" class="btn-principal peq" data-agregar="${prod.id}"${disponible ? '' : ' disabled'}>Agregar</button>
+          <button type="button" class="btn-principal peq" data-agregar="${prod.id}"${disponible ? '' : ' disabled'}>${icono('mas')} Agregar</button>
         </div>
       </div>
     </article>`;
@@ -221,8 +221,8 @@ function abrirInfo(id) {
       </dl>
       ${prod.receta !== '' ? '<h3>Receta e ingredientes</h3><p class="receta">' + escapar(prod.receta) + '</p>' : ''}
       <div class="botones-form">
-        <button type="button" class="btn-principal" data-agregar-info="${prod.id}"${puedePedir(prod) ? '' : ' disabled'}>Agregar al pedido</button>
-        <button type="button" class="btn-secundario" data-cerrar>Cerrar</button>
+        <button type="button" class="btn-principal" data-agregar-info="${prod.id}"${puedePedir(prod) ? '' : ' disabled'}>${icono('carrito')} Agregar al pedido</button>
+        <button type="button" class="btn-secundario" data-cerrar>${icono('cerrar')} Cerrar</button>
       </div>
     </div>`;
 
@@ -307,7 +307,7 @@ function renderizarPedido() {
   if (pedido.length === 0) {
     caja.innerHTML = `
       <div class="pedido-vacio">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        ${icono('carrito')}
         <p>Aún no agregas productos.</p>
       </div>`;
   } else {
@@ -320,9 +320,9 @@ function renderizarPedido() {
             <span>${dinero(prod.precio)} c/u</span>
           </div>
           <div class="cantidad">
-            <button type="button" data-menos="${prod.id}" aria-label="Quitar uno">&minus;</button>
+            <button type="button" data-menos="${prod.id}" aria-label="Quitar uno">${icono('menos')}</button>
             <span>${item.cantidad}</span>
-            <button type="button" data-mas="${prod.id}" aria-label="Agregar uno">+</button>
+            <button type="button" data-mas="${prod.id}" aria-label="Agregar uno">${icono('mas')}</button>
           </div>
           <span class="pedido-item-total">${dinero(prod.precio * item.cantidad)}</span>
         </div>`;
@@ -386,7 +386,7 @@ async function finalizarPedido() {
   const resultado = await registrarPedidoBD(cliente, pedido);
 
   boton.disabled = false;
-  boton.textContent = 'Realizar pedido';
+  boton.innerHTML = icono('check') + ' Realizar pedido';
 
   if (!resultado.ok) {
     // El stock cambió: se ajusta el pedido a lo que hay
@@ -433,16 +433,16 @@ function mostrarExito(resultado, cliente) {
 
   let boton = '';
   if (digitos !== '') {
-    boton = '<a class="btn-secundario" target="_blank" rel="noopener" href="https://wa.me/' + digitos + '?text=' + encodeURIComponent(mensaje) + '">Enviar por WhatsApp</a>';
+    boton = '<a class="btn-secundario" target="_blank" rel="noopener" href="https://wa.me/' + digitos + '?text=' + encodeURIComponent(mensaje) + '">' + icono('telefono') + ' Enviar por WhatsApp</a>';
   }
 
   document.getElementById('exito-contenido').innerHTML = `
-    <div class="exito-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <div class="exito-icono">${icono('check')}</div>
     <h2>Pedido listo</h2>
     <p class="exito-total">${dinero(resultado.total)}</p>
     <p>${texto}</p>
     <div class="botones-form">
-      <button type="button" class="btn-principal" data-cerrar>Seguir comprando</button>
+      <button type="button" class="btn-principal" data-cerrar>${icono('tienda')} Seguir comprando</button>
       ${boton}
     </div>`;
   document.getElementById('dlg-exito').showModal();

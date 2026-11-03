@@ -9,9 +9,14 @@
   if (tema === 'oscuro') document.documentElement.classList.add('oscuro');
 })();
 
+// Dibujo de un icono del paquete (el sprite está en index.html)
+function icono(nombre, extra) {
+  return '<svg class="icono' + (extra ? ' ' + extra : '') + '" aria-hidden="true"><use href="#icon-' + nombre + '"/></svg>';
+}
+
 // Dibujos del botón (luna y sol)
-const ICONO_LUNA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>';
-const ICONO_SOL = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+const ICONO_LUNA = icono('luna');
+const ICONO_SOL = icono('sol');
 
 // Cambiar entre claro y oscuro
 function cambiarTema() {

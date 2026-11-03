@@ -1,7 +1,6 @@
 // Administración: productos, ventas y ajustes.
 
-// Clave para GitHub Pages y para abrir sin servidor.
-// En Render y con npm start la clave sale de la variable ADMIN_CLAVE.
+
 const CLAVE_ADMIN = 'admin123';
 
 // Con este stock o menos se marca como bajo
@@ -223,8 +222,8 @@ function renderizarInventarioAdmin() {
         <td data-etiqueta="Stock">${prod.stock} ${marcaStock}</td>
         <td class="col-media" data-etiqueta="Vence">${formatearFecha(prod.vencimiento)}${vencido ? ' <span class="marca-estado rojo">Vencido</span>' : ''}</td>
         <td class="acciones">
-          <button type="button" class="btn-secundario peq" data-editar="${prod.id}">Editar</button>
-          <button type="button" class="btn-peligro peq" data-eliminar="${prod.id}">Eliminar</button>
+          <button type="button" class="btn-secundario peq" data-editar="${prod.id}">${icono('editar')} Editar</button>
+          <button type="button" class="btn-peligro peq" data-eliminar="${prod.id}">${icono('eliminar')} Eliminar</button>
         </td>
       </tr>`;
   }).join('');
@@ -346,7 +345,7 @@ function editarProducto(id) {
   mostrarVistaPrevia();
 
   document.getElementById('titulo-form').textContent = 'Editar producto';
-  document.getElementById('btn-guardar').textContent = 'Guardar cambios';
+  document.getElementById('btn-guardar').innerHTML = icono('check') + ' Guardar cambios';
   document.getElementById('btn-cancelar').hidden = false;
   document.getElementById('form-producto').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -360,7 +359,7 @@ function limpiarFormulario() {
   mostrarVistaPrevia();
 
   document.getElementById('titulo-form').textContent = 'Agregar producto';
-  document.getElementById('btn-guardar').textContent = 'Agregar';
+  document.getElementById('btn-guardar').innerHTML = icono('mas') + ' Agregar';
   document.getElementById('btn-cancelar').hidden = true;
 }
 
@@ -458,12 +457,11 @@ function quitarImagen() {
 
 
 // Ventas nuevas
-// El administrador ve cuándo un cliente compra: número en la pestaña Ventas, marca
-// "Nuevo" en la lista y un aviso. Funciona con el servidor (Render o npm start).
+
 
 const CLAVE_VENTA_VISTA = 'kioscoAna_ultima_venta_vista';
-let idVentaVista = 0;    // última venta que el administrador ya vio
-let idVentaAntes = 0;    // lo que sea mayor a esto se marca como "Nuevo"
+let idVentaVista = 0;    
+let idVentaAntes = 0;    
 
 function ultimaVentaId() {
   let mayor = 0;

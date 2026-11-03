@@ -1,9 +1,6 @@
 // Datos de la tienda y conexión con la base de datos (KioscoAna.db).
-//
+
 // La web guarda sus datos de tres formas, según donde esté abierta:
-//  - servidor: en Render o con "npm start" (server.js guarda en SQLite)
-//  - github: en GitHub Pages, actualizando KioscoAna.db del repositorio con un token
-//  - local: abierta con doble clic, solo en el navegador (para probar)
 
 // Datos del repositorio, solo se usan en GitHub Pages
 const GITHUB_DUENO = 'enocyesmer-cmd';
@@ -18,7 +15,7 @@ const CATEGORIAS = ['Frescos', 'Repostería', 'Chiverías'];
 
 // Fechas y textos
 
-// Convierte una fecha a texto: 2026-10-12
+
 function fechaATexto(fecha) {
   const mes = ('0' + (fecha.getMonth() + 1)).slice(-2);
   const dia = ('0' + fecha.getDate()).slice(-2);
@@ -84,10 +81,10 @@ let ventas = [];
 let tienda = { telefono: '', correo: '' };
 
 let modo = '';             // 'servidor', 'github' o 'local'
-let baseLista = false;     // true cuando la base se leyó bien
-let errorCarga = '';       // mensaje si no se pudo leer la base
-let bytesDB = null;        // contenido de KioscoAna.db (modo github)
-let shaDB = '';            // versión del archivo en GitHub
+let baseLista = false;     
+let errorCarga = '';       
+let bytesDB = null;        
+let shaDB = '';            
 let libSql = null;         // librería SQLite del navegador
 let enviando = false;
 let envioPendiente = false;
@@ -367,7 +364,7 @@ function crearBytesDB(bytesActuales) {
 
 // GitHub (modo github)
 
-// Dueño y repositorio salen de la dirección: https://usuario.github.io/Repo/
+
 function datosRepositorio() {
   let dueno = GITHUB_DUENO;
   let repo = GITHUB_REPO;
@@ -518,7 +515,7 @@ async function cargarDatos() {
 }
 
 
-// Guardar en modo github y local
+
 
 // Devuelve false si este navegador no puede guardar
 function guardarDatos() {
@@ -629,8 +626,7 @@ async function borrarVentasBD() {
 
 
 // Pedido del cliente (funciona en los tres modos)
-// pedido es una lista de { id, cantidad }.
-// Devuelve { ok, total, lineas, guardado } o { ok: false, problemas }.
+
 async function registrarPedidoBD(cliente, pedido) {
   if (modo === 'servidor') {
     try {
