@@ -127,12 +127,17 @@ function llenarFiltro(idSelect, campo, seleccionado) {
 function htmlProducto(prod) {
   const disponible = puedePedir(prod);
   const detalle = [prod.tamano, prod.sabor].filter(t => t !== '').join(' · ');
+  const estadoProducto = disponible ? 'Disponible' : 'No disponible';
+  const claseEstado = disponible ? 'disponible' : 'no-disponible';
 
   return `
     <article class="producto${disponible ? '' : ' agotado'}">
       <button type="button" class="producto-foto" data-info="${prod.id}" aria-label="Ver información de ${escapar(prod.nombre)}">${htmlFoto(prod)}${htmlCinta(prod)}</button>
       <div class="producto-cuerpo">
-        <span class="producto-cat ${claseCategoria(prod.categoria)}">${escapar(prod.categoria)}</span>
+        <div class="producto-etiquetas">
+          <span class="producto-cat ${claseCategoria(prod.categoria)}">${escapar(prod.categoria)}</span>
+          <span class="producto-estado ${claseEstado}">${estadoProducto}</span>
+        </div>
         <h3>${escapar(prod.nombre)}</h3>
         ${detalle !== '' ? '<p class="producto-detalle">' + escapar(detalle) + '</p>' : ''}
         ${prod.descripcion !== '' ? '<p class="producto-desc">' + escapar(prod.descripcion) + '</p>' : ''}
