@@ -1,0 +1,63 @@
+/* ==========================================================
+   Kiosco Ana · Animaciones al bajar (archivo NUEVO, no cambia styles.css)
+   Todo funciona solo cuando animaciones.js agrega la clase "ka-anim"
+   a <html>. Si el JS no carga, la web se ve exactamente como antes.
+   Solo se animan transform y opacity (fluido en móvil y en PC).
+   ========================================================== */
+
+:root {
+  --ka-distancia: 110px;   /* cuánto viene "de lado" en PC */
+  --ka-duracion: 0.85s;
+  --ka-curva: cubic-bezier(0.22, 1, 0.36, 1);   /* frena suave al llegar */
+}
+
+@media (max-width: 640px) {
+  :root { --ka-distancia: 64px; --ka-duracion: 0.7s; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* Evita que aparezca barra horizontal mientras algo viene de afuera.
+     "clip" no crea scroll, así que no afecta lo fijo ni lo pegajoso. */
+  .ka-anim main,
+  .ka-anim .pie { overflow-x: clip; }
+
+  /* Estado inicial: invisible hasta que le toca entrar */
+  .ka-anim .ka-oculto { opacity: 0; }
+
+  .ka-anim .ka-entra {
+    animation-duration: var(--ka-duracion);
+    animation-timing-function: var(--ka-curva);
+    animation-delay: var(--ka-retraso, 0ms);
+    animation-fill-mode: both;
+    will-change: transform, opacity;
+  }
+  .ka-anim .ka-entra[data-ka="izq"]    { animation-name: ka-desde-izq; }
+  .ka-anim .ka-entra[data-ka="der"]    { animation-name: ka-desde-der; }
+  .ka-anim .ka-entra[data-ka="abajo"]  { animation-name: ka-desde-abajo; }
+
+  @keyframes ka-desde-izq {
+    0%   { opacity: 0; transform: translate3d(calc(var(--ka-distancia) * -1), 0, 0) scale(0.92) rotate(-2.5deg); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1) rotate(0); }
+  }
+  @keyframes ka-desde-der {
+    0%   { opacity: 0; transform: translate3d(var(--ka-distancia), 0, 0) scale(0.92) rotate(2.5deg); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1) rotate(0); }
+  }
+  @keyframes ka-desde-abajo {
+    0%   { opacity: 0; transform: translate3d(0, 56px, 0) scale(0.92); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+
+  /* La foto hace un pequeño "zoom suave" al aparecer el producto */
+  .ka-anim .producto.ka-entra .producto-foto img {
+    animation: ka-zoom-foto calc(var(--ka-duracion) * 1.4) var(--ka-curva) var(--ka-retraso, 0ms) both;
+  }
+  @keyframes ka-zoom-foto {
+    from { transform: scale(1.18); }
+    to   { transform: scale(1); }
+  }
+}
