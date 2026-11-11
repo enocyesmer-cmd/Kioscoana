@@ -86,3 +86,13 @@ Archivos
 7. AVISO DE PEDIDOS NUEVOS (Administracion, con servidor)
    Cuando un cliente hace un pedido, en Administracion aparece un aviso, un numero en la
    pestana Ventas y la marca "Nuevo" en la venta. Se revisa solo cada 20 segundos.
+
+
+8. CONFIRMAR VENTAS (Administracion > Ventas)
+   Cada venta pregunta "¿Venta confirmada?" con los botones Si y No. Al tocar uno se guarda
+   en la columna "confirmada" de la tabla Ventas de KioscoAna.db (pendiente, si o no).
+   - "Cambiar" permite corregir la respuesta.
+   - Los botones de arriba filtran: Todas, Pendientes, Confirmadas y No confirmadas.
+   - Las ventas marcadas "No" no suman al Total vendido ni al grafico.
+   - Tu KioscoAna.db anterior se actualiza solo: al iniciar se le agrega la columna sin borrar
+     nada, y las ventas que ya tenias quedan como "pendiente".

@@ -9,6 +9,10 @@ const STOCK_BAJO = 5;
 let idEditando = null;
 let imagenNueva = '';
 
+// Ventas
+let filtroVentas = 'todas';           // todas, pendiente, si o no
+const ventasCambiando = new Set();    // ventas donde se está cambiando la respuesta
+
 
 // Acceso
 
@@ -132,8 +136,9 @@ function renderizarAdmin() {
 }
 
 function renderizarResumen() {
+  // Las ventas marcadas como "no confirmada" no suman al total
   let totalVendido = 0;
-  ventas.forEach(v => { totalVendido += Number(v.total) || 0; });
+  ventas.forEach(v => { if (v.confirmada !== 'no') totalVendido += Number(v.total) || 0; });
 
   document.getElementById('res-productos').textContent = inventario.length;
   const bajos = inventario.filter(p => p.stock <= STOCK_BAJO).length;
@@ -161,6 +166,7 @@ function renderizarGrafico() {
   let sumaSemana = 0;
   let pedidosSemana = 0;
   ventas.forEach(v => {
+    if (v.confirmada === 'no') return;
     const dia = dias.find(d => d.clave === String(v.fecha).slice(0, 10));
     if (!dia) return;
     dia.total += Number(v.total) || 0;
@@ -222,8 +228,8 @@ function renderizarInventarioAdmin() {
         <td data-etiqueta="Stock">${prod.stock} ${marcaStock}</td>
         <td class="col-media" data-etiqueta="Vence">${formatearFecha(prod.vencimiento)}${vencido ? ' <span class="marca-estado rojo">Vencido</span>' : ''}</td>
         <td class="acciones">
-          <button type="button" class="btn-secundario peq" data-editar="${prod.id}">${icono('editar')} Editar</button>
-          <button type="button" class="btn-peligro peq" data-eliminar="${prod.id}">${icono('eliminar')} Eliminar</button>
+          <button type="button" class="btn-secundario peq" data-editar="${prod.id}" title="Editar" aria-label="Editar ${escapar(prod.nombre)}">${icono('editar')}</button>
+          <button type="button" class="btn-peligro peq" data-eliminar="${prod.id}" title="Eliminar" aria-label="Eliminar ${escapar(prod.nombre)}">${icono('eliminar')}</button>
         </td>
       </tr>`;
   }).join('');
@@ -232,12 +238,40 @@ function renderizarInventarioAdmin() {
 function textoCliente(cliente) {
   if (!cliente || !cliente.nombre) return '-';
 
-  let texto = '<strong>' + escapar(cliente.nombre) + '</strong>';
-  texto += '<span class="dato-cliente">Tel: ' + escapar(cliente.telefono) + '</span>';
-  texto += '<span class="dato-cliente">' + escapar(cliente.direccion) + '</span>';
-  if (cliente.referencia) texto += '<span class="dato-cliente">Ref: ' + escapar(cliente.referencia) + '</span>';
-  if (cliente.nota) texto += '<span class="dato-cliente">Nota: ' + escapar(cliente.nota) + '</span>';
-  return texto;
+  let texto = '<div class="cliente-datos"><strong>' + escapar(cliente.nombre) + '</strong>';
+  texto += '<span class="dato-cliente" title="Teléfono">' + icono('telefono') + escapar(cliente.telefono) + '</span>';
+  texto += '<span class="dato-cliente" title="Dirección">' + icono('ubicacion') + escapar(cliente.direccion) + '</span>';
+  if (cliente.referencia) texto += '<span class="dato-cliente" title="Referencia">' + icono('etiqueta') + escapar(cliente.referencia) + '</span>';
+  if (cliente.nota) texto += '<span class="dato-cliente" title="Nota">' + icono('nota') + escapar(cliente.nota) + '</span>';
+  return texto + '</div>';
+}
+
+// Pregunta "¿Venta confirmada?" con Sí y No. Al elegir, se guarda en la base de datos.
+function htmlConfirmacion(venta) {
+  const estado = venta.confirmada || 'pendiente';
+
+  if (estado === 'pendiente' || ventasCambiando.has(Number(venta.id))) {
+    return `
+      <div class="confirmar-venta">
+        <span class="confirmar-pregunta">¿Venta confirmada?</span>
+        <div class="confirmar-botones">
+          <button type="button" class="btn-si" data-confirmar="${venta.id}" data-valor="si">${icono('check')} Sí</button>
+          <button type="button" class="btn-no" data-confirmar="${venta.id}" data-valor="no">${icono('cerrar')} No</button>
+        </div>
+      </div>`;
+  }
+
+  const confirmada = estado === 'si';
+  return `
+    <div class="confirmar-venta">
+      <span class="estado-venta ${confirmada ? 'si' : 'no'}">${icono(confirmada ? 'confirmar' : 'cancelar')} ${confirmada ? 'Confirmada' : 'No confirmada'}</span>
+      <button type="button" class="enlace" data-cambiar="${venta.id}">Cambiar</button>
+    </div>`;
+}
+
+// Cuántas ventas hay en cada grupo (para los botones de filtro)
+function contarVentas(estado) {
+  return ventas.filter(v => (v.confirmada || 'pendiente') === estado).length;
 }
 
 // La venta más reciente va primero
@@ -245,22 +279,37 @@ function renderizarVentas() {
   const cuerpo = document.getElementById('cuerpo-ventas');
   document.getElementById('btn-borrar-ventas').hidden = ventas.length === 0;
 
+  // Números y botón activo de los filtros
+  document.getElementById('cnt-todas').textContent = ventas.length;
+  document.getElementById('cnt-pendiente').textContent = contarVentas('pendiente');
+  document.getElementById('cnt-si').textContent = contarVentas('si');
+  document.getElementById('cnt-no').textContent = contarVentas('no');
+  document.querySelectorAll('[data-filtro-venta]').forEach(boton => {
+    boton.classList.toggle('activo', boton.dataset.filtroVenta === filtroVentas);
+  });
+
   if (ventas.length === 0) {
-    cuerpo.innerHTML = '<tr><td colspan="4" class="tabla-vacia">Aún no hay ventas registradas.</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="5" class="tabla-vacia">Aún no hay ventas registradas.</td></tr>';
     return;
   }
 
   let html = '';
   for (let i = ventas.length - 1; i >= 0; i--) {
     const venta = ventas[i];
+    const estado = venta.confirmada || 'pendiente';
+    if (filtroVentas !== 'todas' && estado !== filtroVentas) continue;
+
     html += `
-      <tr>
+      <tr${estado === 'pendiente' ? ' class="fila-pendiente"' : ''}>
         <td data-etiqueta="Fecha">${escapar(formatearFechaHora(venta.fecha))}${Number(venta.id) > idVentaAntes ? ' <span class="marca-estado verde">Nuevo</span>' : ''}</td>
         <td data-etiqueta="Cliente">${textoCliente(venta.cliente)}</td>
         <td data-etiqueta="Detalle">${escapar(venta.detalle)}</td>
         <td data-etiqueta="Total"><strong>${dinero(venta.total)}</strong></td>
+        <td data-etiqueta="Confirmación">${htmlConfirmacion(venta)}</td>
       </tr>`;
   }
+
+  if (html === '') html = '<tr><td colspan="5" class="tabla-vacia">No hay ventas en este grupo.</td></tr>';
   cuerpo.innerHTML = html;
 }
 
@@ -381,6 +430,30 @@ async function eliminarProducto(id) {
   if (idEditando === id) limpiarFormulario();
   renderizarAdmin();
   avisar('Producto eliminado.');
+}
+
+// Guarda la respuesta de "¿Venta confirmada?" (si / no) en la base de datos
+async function confirmarVenta(id, estado, contenedor) {
+  if (!puedeGuardar()) {
+    if (modo === 'servidor') prepararAdmin(); else avisarSinPermiso();
+    return;
+  }
+
+  // Se bloquean los botones mientras se guarda
+  contenedor.querySelectorAll('button').forEach(b => { b.disabled = true; });
+
+  const r = await confirmarVentaBD(id, estado);
+  if (!r.ok) {
+    avisarError(r.error);
+    renderizarVentas();
+    return;
+  }
+
+  ventasCambiando.delete(id);
+  avisar(estado === 'si' ? 'Venta confirmada.' : 'Venta marcada como no confirmada.');
+  renderizarResumen();
+  renderizarGrafico();
+  renderizarVentas();
 }
 
 async function borrarHistorial() {
@@ -614,6 +687,27 @@ function iniciarAdmin() {
   });
 
   document.getElementById('btn-borrar-ventas').addEventListener('click', borrarHistorial);
+
+  // Botones Sí / No y "Cambiar" de cada venta
+  document.getElementById('cuerpo-ventas').addEventListener('click', function(e) {
+    const respuesta = e.target.closest('[data-confirmar]');
+    const cambiar = e.target.closest('[data-cambiar]');
+    if (respuesta) {
+      confirmarVenta(Number(respuesta.dataset.confirmar), respuesta.dataset.valor, respuesta.parentElement);
+    }
+    if (cambiar) {
+      ventasCambiando.add(Number(cambiar.dataset.cambiar));
+      renderizarVentas();
+    }
+  });
+
+  // Filtro: todas, pendientes, confirmadas, no confirmadas
+  document.getElementById('filtros-venta').addEventListener('click', function(e) {
+    const boton = e.target.closest('[data-filtro-venta]');
+    if (!boton) return;
+    filtroVentas = boton.dataset.filtroVenta;
+    renderizarVentas();
+  });
   document.getElementById('form-contacto').addEventListener('submit', guardarContacto);
   document.getElementById('form-token').addEventListener('submit', conectarGithub);
   document.getElementById('btn-quitar-token').addEventListener('click', quitarToken);

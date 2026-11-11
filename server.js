@@ -46,7 +46,8 @@ CREATE TABLE IF NOT EXISTS Ventas (
   fecha TEXT NOT NULL,
   detalle TEXT NOT NULL,
   total REAL NOT NULL,
-  cliente TEXT NOT NULL DEFAULT '{}'
+  cliente TEXT NOT NULL DEFAULT '{}',
+  confirmada TEXT NOT NULL DEFAULT 'pendiente'
 );
 
 CREATE TABLE IF NOT EXISTS Config (
@@ -54,6 +55,14 @@ CREATE TABLE IF NOT EXISTS Config (
   valor TEXT NOT NULL DEFAULT ''
 );
 `);
+
+// Si la base es anterior, se le agrega la columna "confirmada" sin tocar nada más.
+// Valores: 'pendiente' (todavía no se decide), 'si' o 'no'.
+if (db.prepare('PRAGMA table_info(Ventas)').all().every(c => c.name !== 'confirmada')) {
+  db.exec("ALTER TABLE Ventas ADD COLUMN confirmada TEXT NOT NULL DEFAULT 'pendiente'");
+}
+
+const ESTADOS_VENTA = ['pendiente', 'si', 'no'];
 
 
 // Lectura de datos
@@ -67,10 +76,10 @@ function leerProductos() {
 }
 
 function leerVentas() {
-  return db.prepare('SELECT id_venta AS id, fecha, detalle, total, cliente FROM Ventas ORDER BY id_venta').all().map(v => {
+  return db.prepare('SELECT id_venta AS id, fecha, detalle, total, cliente, confirmada FROM Ventas ORDER BY id_venta').all().map(v => {
     let cliente = {};
     try { cliente = JSON.parse(v.cliente || '{}'); } catch (_) {}
-    return { id: v.id, fecha: v.fecha, detalle: v.detalle, total: v.total, cliente: cliente };
+    return { id: v.id, fecha: v.fecha, detalle: v.detalle, total: v.total, cliente: cliente, confirmada: v.confirmada };
   });
 }
 
@@ -291,9 +300,10 @@ function restaurarTodo(datos) {
     });
 
     db.prepare('DELETE FROM Ventas').run();
-    const insertarVenta = db.prepare('INSERT INTO Ventas (id_venta, fecha, detalle, total, cliente) VALUES (?, ?, ?, ?, ?)');
+    const insertarVenta = db.prepare('INSERT INTO Ventas (id_venta, fecha, detalle, total, cliente, confirmada) VALUES (?, ?, ?, ?, ?, ?)');
     ventas.forEach(v => {
-      insertarVenta.run(Number(v.id) || null, texto(v.fecha, 20), texto(v.detalle, 2000), Number(v.total) || 0, JSON.stringify(v.cliente || {}));
+      const estado = ESTADOS_VENTA.indexOf(v.confirmada) === -1 ? 'pendiente' : v.confirmada;
+      insertarVenta.run(Number(v.id) || null, texto(v.fecha, 20), texto(v.detalle, 2000), Number(v.total) || 0, JSON.stringify(v.cliente || {}), estado);
     });
 
     guardarConfig(limpiarConfig(datos.config));
@@ -377,6 +387,18 @@ async function manejarApi(req, res, ruta) {
 
     if (metodo === 'PUT' && ruta === '/api/admin/config') {
       guardarConfig(limpiarConfig(await leerCuerpo(req, 2000)));
+      return responderJson(res, 200, { ok: true });
+    }
+
+    // Marcar una venta como confirmada ('si'), no confirmada ('no') o pendiente
+    const ventaRuta = ruta.match(/^\/api\/admin\/ventas\/(\d+)$/);
+    if (ventaRuta && metodo === 'PUT') {
+      const datos = await leerCuerpo(req, 1000);
+      if (ESTADOS_VENTA.indexOf(datos.confirmada) === -1) {
+        return responderJson(res, 400, { ok: false, error: 'Estado de venta no válido.' });
+      }
+      const cambio = db.prepare('UPDATE Ventas SET confirmada = ? WHERE id_venta = ?').run(datos.confirmada, Number(ventaRuta[1]));
+      if (cambio.changes === 0) return responderJson(res, 404, { ok: false, error: 'La venta no existe.' });
       return responderJson(res, 200, { ok: true });
     }
 

@@ -1042,273 +1042,86 @@ dialog.ventana::backdrop { background: rgba(26, 16, 8, 0.55); backdrop-filter: b
 .btn-peq .icono, .peq .icono { width: 1.05rem; height: 1.05rem; }
 .enlace .icono { width: 1rem; height: 1rem; vertical-align: -0.18em; }
 
-/* ===== Pulido visual de iconos: Kiosco Ana =====
-   Mantiene los mismos SVG y funciones; solo mejora su presencia visual. */
-.icono {
-  width: 1.3rem;
-  height: 1.3rem;
-  vertical-align: -0.24em;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  shape-rendering: geometricPrecision;
-  transition: color 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
-}
 
-/* Iconos de navegación */
-.menu a .icono {
-  width: 1.18rem;
-  height: 1.18rem;
-  opacity: 0.88;
-}
-.menu a:hover .icono,
-.menu a.activo .icono {
-  color: var(--marca);
-  opacity: 1;
-}
+/* ===== Iconos mejorados =====
+   Dibujo con relleno suave + línea. Todos toman el color del texto. */
+.icono { width: 1.3rem; height: 1.3rem; stroke-width: 1.75; }
+.menu a .icono { width: 1.35rem; height: 1.35rem; }
+.pestanas button .icono { width: 1.35rem; height: 1.35rem; }
+.btn-principal .icono, .btn-secundario .icono, .btn-peligro .icono { width: 1.25rem; height: 1.25rem; vertical-align: -0.25em; }
+.btn-icono svg, .buscador svg, .btn-vista svg { width: 22px; height: 22px; }
+.buscador svg { stroke-width: 1.75; }
+.chip svg { width: 20px; height: 20px; }
+.peq .icono, .btn-peq .icono { width: 1.15rem; height: 1.15rem; }
+.cantidad button .icono { width: 16px; height: 16px; }
 
-/* Iconos de acciones: un poco más presentes y con respuesta al cursor */
-.btn-principal .icono,
-.btn-secundario .icono,
-.btn-peligro .icono {
-  width: 1.18rem;
-  height: 1.18rem;
-}
-.btn-principal:hover .icono,
-.btn-secundario:hover .icono,
-.btn-peligro:hover .icono,
-.btn-icono:hover .icono {
-  transform: translateY(-1px) scale(1.07);
-}
+/* Cada categoría con su color */
+.chip[data-categoria="Frescos"]:not(.activo) svg { color: #1c7c8c; }
+.chip[data-categoria="Repostería"]:not(.activo) svg { color: #c0397a; }
+.chip[data-categoria="Chiverías"]:not(.activo) svg { color: #b97a0a; }
+html.oscuro .chip[data-categoria="Frescos"]:not(.activo) svg { color: #5fd0e0; }
+html.oscuro .chip[data-categoria="Repostería"]:not(.activo) svg { color: #ff8fc2; }
+html.oscuro .chip[data-categoria="Chiverías"]:not(.activo) svg { color: #ffc95e; }
 
-/* Selector de cuadrícula/lista con estado activo más claro */
-.vista-botones {
-  border-radius: 10px;
-  padding: 3px;
-  gap: 3px;
-  background: var(--superficie);
-  border-color: var(--linea);
+/* Cuadros de resumen de la administración: icono en una caja de color */
+.dato svg {
+  width: 46px; height: 46px; flex: 0 0 46px; padding: 10px; border-radius: 12px;
+  color: var(--accion); background: rgba(240, 144, 26, 0.16); stroke: currentColor; stroke-width: 1.7;
 }
-.btn-vista {
-  width: 39px;
-  height: 36px;
-  border-radius: 7px;
-  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-}
-.btn-vista svg {
-  width: 21px;
-  height: 21px;
-  stroke-width: 2.1;
-}
-.btn-vista + .btn-vista { border-left: 0; }
-.btn-vista:hover:not(.activo) {
-  background: var(--papel);
-  transform: translateY(-1px);
-}
-.btn-vista.activo {
-  background: var(--accion);
-  box-shadow: 0 2px 7px rgba(120, 65, 15, 0.22);
-}
+.dato:nth-child(2) svg { color: var(--aviso); background: rgba(212, 160, 0, 0.18); }
+.dato:nth-child(3) svg { color: var(--ok); background: rgba(44, 106, 76, 0.16); }
+.dato:nth-child(4) svg { color: var(--accion); background: rgba(191, 83, 10, 0.14); }
+.dato.alerta-dato svg { color: var(--error); background: rgba(180, 40, 30, 0.14); }
 
-/* Buscador y filtros */
-.buscador svg {
-  width: 21px;
-  height: 21px;
-  stroke-width: 2.1;
-}
-#btn-filtros .icono { color: var(--accion); }
+/* Datos de contacto con icono de pie */
+.pie-contacto .icono { width: 1.2rem; height: 1.2rem; }
 
-/* Iconos pequeños de edición y cantidades */
-.btn-peq .icono,
-.peq .icono { width: 1.1rem; height: 1.1rem; }
-.cantidad button .icono { width: 17px; height: 17px; }
-.btn-cerrar-pedido .icono,
-.enlace .icono { width: 1.05rem; height: 1.05rem; }
-
-/* Mejor respuesta táctil sin animaciones excesivas */
-@media (prefers-reduced-motion: reduce) {
-  .icono, .btn-vista { transition: none; }
-}
+/* Acciones del inventario: solo icono, así no se corta la tabla */
+.acciones .peq { width: 38px; height: 38px; padding: 0; display: inline-grid; place-items: center; }
+.acciones .peq .icono { width: 1.2rem; height: 1.2rem; vertical-align: 0; }
 
 
-/* ===== Tarjetas de productos: mejora visual acumulativa ===== */
-.productos.vista-cuadros {
-  align-items: stretch;
-  grid-auto-rows: 1fr;
-  gap: 20px;
-}
+/* ===== Ventas: confirmación y datos del cliente ===== */
+.dato-cliente { display: flex; align-items: flex-start; gap: 6px; }
+.dato-cliente .icono { width: 0.95rem; height: 0.95rem; margin-top: 2px; color: var(--marca); }
 
-.productos.vista-cuadros .producto {
-  min-width: 0;
-  min-height: 100%;
-  border: 1px solid var(--linea);
-  border-radius: 18px;
-  background: var(--superficie);
-  box-shadow: 0 5px 16px rgba(64, 42, 22, 0.07);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-}
+.filtros-venta { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+.filtros-venta .chip { padding: 6px 14px; font-size: 0.85rem; }
 
-.productos.vista-cuadros .producto:hover {
-  border-color: rgba(191, 83, 10, 0.42);
-  transform: translateY(-5px);
-  box-shadow: 0 13px 26px rgba(64, 42, 22, 0.13);
-}
+.confirmar-venta { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 150px; }
+.confirmar-pregunta { font-size: 0.8rem; font-weight: 700; color: var(--tinta-suave); }
+.confirmar-botones { display: flex; gap: 6px; }
 
-.productos.vista-cuadros .producto-foto {
-  aspect-ratio: 1 / 0.88;
-  background: linear-gradient(145deg, var(--papel), var(--toldo-2));
+.btn-si, .btn-no {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 8px;
+  font: inherit; font-size: 0.85rem; font-weight: 700;
+  background: transparent; border: 1.5px solid; cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
 }
+.btn-si .icono, .btn-no .icono { width: 1.1rem; height: 1.1rem; vertical-align: 0; }
+.btn-si { color: var(--ok); border-color: var(--ok); }
+.btn-si:hover { background: var(--ok); color: var(--superficie); }
+.btn-no { color: var(--error); border-color: var(--error); }
+.btn-no:hover { background: var(--error); color: var(--superficie); }
+.btn-si:active, .btn-no:active { transform: scale(0.96); }
+.btn-si:disabled, .btn-no:disabled { opacity: 0.5; cursor: wait; }
 
-.productos.vista-cuadros .producto-foto img {
-  padding: 8px;
-  object-fit: contain;
-  transition: transform 0.35s ease;
+.estado-venta {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 11px 3px 8px; border-radius: 999px;
+  font-size: 0.82rem; font-weight: 700;
 }
+.estado-venta .icono { width: 1.1rem; height: 1.1rem; vertical-align: 0; }
+.estado-venta.si { background: var(--verde-suave); color: var(--ok); }
+.estado-venta.no { background: rgba(180, 40, 30, 0.12); color: var(--error); }
+.confirmar-venta .enlace { font-size: 0.8rem; }
 
-.productos.vista-cuadros .producto:hover .producto-foto img {
-  transform: scale(1.055);
-}
-
-.productos.vista-cuadros .foto-inicial {
-  font-size: clamp(3rem, 5vw, 4.4rem);
-  color: var(--tinta);
-  background: linear-gradient(145deg, var(--tono), var(--superficie));
-}
-
-.producto-etiquetas {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-bottom: 8px;
-}
-
-.producto-cat {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: var(--tono);
-  font-size: 0.68rem;
-  letter-spacing: 0.045em;
-  line-height: 1.35;
-}
-
-.producto-estado {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ok);
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.producto-estado::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 13%, transparent);
-}
-
-.producto-estado.no-disponible { color: var(--error); }
-
-.productos.vista-cuadros .producto-cuerpo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 15px 16px 8px;
-}
-
-.productos.vista-cuadros .producto h3 {
-  display: -webkit-box;
-  min-height: 2.5em;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  font-size: 1.12rem;
-  line-height: 1.25;
-  margin: 0 0 5px;
-}
-
-.productos.vista-cuadros .producto-detalle {
-  min-height: 1.4em;
-  font-size: 0.82rem;
-}
-
-.productos.vista-cuadros .producto-pie {
-  margin-top: auto;
-  padding: 12px 16px 16px;
-  align-items: center;
-  border-top: 1px solid var(--linea);
-  gap: 10px;
-}
-
-.productos.vista-cuadros .precio {
-  border-radius: 9px;
-  clip-path: none;
-  padding: 6px 11px;
-  background: var(--etiqueta-fondo);
-  color: var(--etiqueta-texto);
-  font-size: 1.12rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.productos.vista-cuadros .producto-botones {
-  flex: 1 1 auto;
-  justify-content: flex-end;
-  gap: 7px;
-}
-
-.productos.vista-cuadros .producto-botones .btn-secundario,
-.productos.vista-cuadros .producto-botones .btn-principal {
-  min-height: 38px;
-  border-radius: 10px;
-}
-
-.productos.vista-cuadros .producto-botones .btn-principal {
-  box-shadow: 0 3px 8px rgba(191, 83, 10, 0.16);
-}
-
-.productos.vista-cuadros .producto.agotado {
-  opacity: 0.82;
-}
-
-.productos.vista-cuadros .producto.agotado .producto-foto img,
-.productos.vista-cuadros .producto.agotado .foto-inicial {
-  filter: grayscale(0.45);
-}
-
-/* La vista de lista conserva su distribución horizontal y sus controles actuales. */
-.vista-lista .producto-etiquetas {
-  justify-content: flex-start;
-  margin-bottom: 4px;
-}
-.vista-lista .producto-cat { padding: 3px 8px; }
+/* La venta que todavía no se confirmó se nota */
+.tabla tr.fila-pendiente td:first-child { box-shadow: inset 4px 0 0 var(--marca); }
 
 @media (max-width: 640px) {
-  .productos.vista-cuadros { gap: 12px; grid-auto-rows: auto; }
-  .productos.vista-cuadros .producto { border-radius: 14px; }
-  .productos.vista-cuadros .producto-foto { aspect-ratio: 1 / 0.92; }
-  .productos.vista-cuadros .producto-cuerpo { padding: 11px 11px 6px; }
-  .productos.vista-cuadros .producto h3 { font-size: 0.98rem; }
-  .productos.vista-cuadros .producto-pie { padding: 10px 11px 12px; gap: 8px; }
-  .productos.vista-cuadros .precio { font-size: 1rem; padding: 5px 8px; }
-  .productos.vista-cuadros .producto-botones { gap: 5px; }
-  .productos.vista-cuadros .producto-botones .btn-secundario,
-  .productos.vista-cuadros .producto-botones .btn-principal { min-height: 36px; padding: 7px 9px; font-size: 0.78rem; }
-  .producto-etiquetas { gap: 5px; }
-  .producto-cat { font-size: 0.61rem; padding: 3px 7px; }
-  .producto-estado { font-size: 0.64rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .productos.vista-cuadros .producto,
-  .productos.vista-cuadros .producto-foto img { transition: none; }
+  .confirmar-venta { align-items: flex-end; }
+  .cliente-datos { text-align: right; }
+  .cliente-datos .dato-cliente { justify-content: flex-end; }
 }

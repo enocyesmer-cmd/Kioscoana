@@ -54,13 +54,19 @@ CREATE TABLE IF NOT EXISTS Ventas (
   fecha TEXT NOT NULL,
   detalle TEXT NOT NULL,
   total REAL NOT NULL,
-  cliente TEXT NOT NULL DEFAULT '{}'
+  cliente TEXT NOT NULL DEFAULT '{}',
+  confirmada TEXT NOT NULL DEFAULT 'pendiente'
 );
 CREATE TABLE IF NOT EXISTS Config (
   clave TEXT PRIMARY KEY,
   valor TEXT NOT NULL DEFAULT ''
 );
 `);
+
+// Si tu KioscoAna.db es anterior, se le agrega la columna "confirmada" sin borrar nada
+if (db.prepare('PRAGMA table_info(Ventas)').all().every(c => c.name !== 'confirmada')) {
+  db.exec("ALTER TABLE Ventas ADD COLUMN confirmada TEXT NOT NULL DEFAULT 'pendiente'");
+}
 
 function leerLocal() {
   const inventario = db.prepare(`
@@ -69,10 +75,10 @@ function leerLocal() {
     FROM Productos ORDER BY id_productos
   `).all();
 
-  const ventas = db.prepare('SELECT id_venta AS id, fecha, detalle, total, cliente FROM Ventas ORDER BY id_venta').all().map(v => {
+  const ventas = db.prepare('SELECT id_venta AS id, fecha, detalle, total, cliente, confirmada FROM Ventas ORDER BY id_venta').all().map(v => {
     let cliente = {};
     try { cliente = JSON.parse(v.cliente || '{}'); } catch (e) {}
-    return { id: v.id, fecha: v.fecha, detalle: v.detalle, total: v.total, cliente: cliente };
+    return { id: v.id, fecha: v.fecha, detalle: v.detalle, total: v.total, cliente: cliente, confirmada: v.confirmada };
   });
 
   const config = { telefono: '', correo: '' };
@@ -97,9 +103,9 @@ function escribirLocal(datos) {
     });
 
     db.prepare('DELETE FROM Ventas').run();
-    const insertarVenta = db.prepare('INSERT INTO Ventas (id_venta, fecha, detalle, total, cliente) VALUES (?, ?, ?, ?, ?)');
+    const insertarVenta = db.prepare('INSERT INTO Ventas (id_venta, fecha, detalle, total, cliente, confirmada) VALUES (?, ?, ?, ?, ?, ?)');
     datos.ventas.forEach(v => {
-      insertarVenta.run(v.id, v.fecha, v.detalle, v.total, JSON.stringify(v.cliente || {}));
+      insertarVenta.run(v.id, v.fecha, v.detalle, v.total, JSON.stringify(v.cliente || {}), v.confirmada || 'pendiente');
     });
 
     db.prepare('DELETE FROM Config').run();

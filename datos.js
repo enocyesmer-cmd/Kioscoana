@@ -105,6 +105,8 @@ function aplicarDatos(datos) {
   const lista = Array.isArray(datos.inventario) ? datos.inventario : [];
   inventario = lista.map(p => new Producto(p.id, p.nombre, p.precio, p.stock, p.categoria, p.tamano, p.sabor, p.vencimiento, p.descripcion, p.receta, p.imagen));
   ventas = Array.isArray(datos.ventas) ? datos.ventas : [];
+  // Las ventas viejas no traen confirmación: quedan pendientes
+  ventas.forEach(v => { if (!v.confirmada) v.confirmada = 'pendiente'; });
   const conf = datos.config || {};
   tienda = { telefono: conf.telefono || '', correo: conf.correo || '' };
 }
@@ -268,7 +270,8 @@ function prepararTablas(db) {
       fecha TEXT NOT NULL,
       detalle TEXT NOT NULL,
       total REAL NOT NULL,
-      cliente TEXT NOT NULL DEFAULT '{}'
+      cliente TEXT NOT NULL DEFAULT '{}',
+      confirmada TEXT NOT NULL DEFAULT 'pendiente'
     )
   `);
   db.run(`
@@ -277,6 +280,12 @@ function prepararTablas(db) {
       valor TEXT NOT NULL DEFAULT ''
     )
   `);
+
+  // Si la base es anterior, se agrega la columna "confirmada" sin borrar nada
+  const columnas = leerFilas(db, 'PRAGMA table_info(Ventas)').map(c => c.name);
+  if (columnas.indexOf('confirmada') === -1) {
+    db.run("ALTER TABLE Ventas ADD COLUMN confirmada TEXT NOT NULL DEFAULT 'pendiente'");
+  }
 }
 
 function leerFilas(db, sql) {
@@ -299,10 +308,10 @@ function leerDatosDeDB(bytes) {
       FROM Productos ORDER BY id_productos
     `);
 
-    const listaVentas = leerFilas(db, 'SELECT id_venta AS id, fecha, detalle, total, cliente FROM Ventas ORDER BY id_venta').map(v => {
+    const listaVentas = leerFilas(db, 'SELECT id_venta AS id, fecha, detalle, total, cliente, confirmada FROM Ventas ORDER BY id_venta').map(v => {
       let cliente = {};
       try { cliente = JSON.parse(v.cliente || '{}'); } catch (e) {}
-      return { id: v.id, fecha: v.fecha, detalle: v.detalle, total: v.total, cliente: cliente };
+      return { id: v.id, fecha: v.fecha, detalle: v.detalle, total: v.total, cliente: cliente, confirmada: v.confirmada };
     });
 
     const config = {};
@@ -338,9 +347,9 @@ function crearBytesDB(bytesActuales) {
       insertarProducto.free();
 
       db.run('DELETE FROM Ventas');
-      const insertarVenta = db.prepare('INSERT INTO Ventas (fecha, detalle, total, cliente) VALUES (?, ?, ?, ?)');
+      const insertarVenta = db.prepare('INSERT INTO Ventas (id_venta, fecha, detalle, total, cliente, confirmada) VALUES (?, ?, ?, ?, ?, ?)');
       ventas.forEach(v => {
-        insertarVenta.run([String(v.fecha || ''), String(v.detalle || ''), Number(v.total || 0), JSON.stringify(v.cliente || {})]);
+        insertarVenta.run([v.id ? Number(v.id) : null, String(v.fecha || ''), String(v.detalle || ''), Number(v.total || 0), JSON.stringify(v.cliente || {}), String(v.confirmada || 'pendiente')]);
       });
       insertarVenta.free();
 
@@ -613,6 +622,17 @@ async function guardarContactoBD(telefono, correo) {
 
   if (!puedeGuardar()) return resultadoError('No se puede guardar todavía.');
   tienda = { telefono: telefono, correo: correo };
+  return guardarDatos() ? { ok: true } : resultadoError('No se pudo guardar.');
+}
+
+// Marca una venta como confirmada ('si'), no confirmada ('no') o pendiente
+async function confirmarVentaBD(id, estado) {
+  if (modo === 'servidor') return accionServidor('PUT', '/api/admin/ventas/' + id, { confirmada: estado });
+
+  if (!puedeGuardar()) return resultadoError('No se puede guardar todavía.');
+  const venta = ventas.find(v => Number(v.id) === Number(id));
+  if (!venta) return resultadoError('La venta no existe.');
+  venta.confirmada = estado;
   return guardarDatos() ? { ok: true } : resultadoError('No se pudo guardar.');
 }
 
