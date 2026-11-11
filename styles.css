@@ -886,8 +886,6 @@ html.oscuro .portada {
 .producto-foto { aspect-ratio: 1 / 1; }
 .producto h3 { font-size: 1.12rem; }
 .vista-lista .producto-foto { aspect-ratio: auto; }
-.producto-botones [data-agregar]::before { content: '+'; font-size: 1.2rem; font-weight: 700; line-height: 1; }
-.producto-botones [data-agregar]:disabled::before { content: none; }
 
 /* Carga: tarjetas de relleno mientras llegan los productos */
 .skeleton {
@@ -1128,3 +1126,74 @@ html.oscuro .chip[data-categoria="Chiverías"]:not(.activo) svg { color: #ffc95e
 
 /* Al abrir la administración, las pestañas quedan debajo de la cabecera fija */
 .pestanas { scroll-margin-top: 90px; }
+
+
+/* ===== Celular: ajustes de interfaz ===== */
+
+/* Evita que el contenido ancho (chips, buscador) empuje la columna fuera de la pantalla */
+@media (max-width: 900px) {
+  .tienda { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .tienda > * { min-width: 0; }
+  .barra-movil { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .barra-movil .btn-principal { white-space: nowrap; flex: 0 0 auto; }
+  .avisos { bottom: calc(84px + env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 640px) {
+  /* Cabecera más baja */
+  .cabecera-fila { padding-top: 8px; padding-bottom: 0; gap: 4px 12px; }
+  .marca-logo { width: 40px; height: 40px; }
+  .marca-texto strong { font-size: 1.2rem; }
+  .menu { margin-left: 0; }
+  .menu a { justify-content: center; padding: 10px 8px 9px; font-size: 0.92rem; }
+
+  /* Buscador a todo el ancho; abajo filtros y tipo de vista */
+  .herramientas { flex-wrap: wrap; gap: 8px; }
+  .buscador { flex: 1 1 100%; }
+  #btn-filtros { flex: 1; justify-content: center; }
+  .btn-secundario, .btn-principal { min-height: 44px; }
+  .btn-vista { min-width: 48px; }
+  .vista-botones { flex: 0 0 auto; }
+
+  /* Ordenar y contador en filas separadas, sin salirse */
+  .resultados-fila { gap: 8px; }
+  .orden select { min-width: 0; }
+
+  /* Tarjetas de producto: dos columnas que sí caben */
+  .productos.vista-cuadros { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .producto h3 { font-size: 1rem; }
+  .producto-botones { display: flex; gap: 6px; }
+  .producto-botones .btn-secundario, .producto-botones .btn-principal { padding: 9px 6px; min-height: 40px; justify-content: center; }
+  .producto-botones .btn-principal .icono { width: 1rem; height: 1rem; }
+
+  /* Campos de 16 px: el iPhone no hace zoom al tocarlos */
+  input, select, textarea { font-size: 16px; }
+
+  /* Pestañas de la administración: las 3 caben sin cortarse */
+  .pestanas { overflow-x: visible; }
+  .pestanas button { flex: 1; justify-content: center; padding: 12px 4px; font-size: 0.9rem; gap: 5px; }
+  .pestanas button .icono { width: 1.2rem; height: 1.2rem; }
+
+  /* Precio/Stock y Tamaño/Sabor siguen en dos columnas para acortar el formulario */
+  .dos { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tarjeta, .panel { padding: 16px; }
+
+  /* Resumen del administrador más compacto */
+  .resumen { gap: 10px; }
+  .dato { padding: 12px; gap: 10px; }
+  .dato svg { width: 40px; height: 40px; flex-basis: 40px; padding: 8px; }
+
+  /* Ventanas (info y datos del pedido) casi a pantalla completa */
+  dialog.ventana { width: calc(100% - 20px); max-height: 92vh; margin: auto; }
+
+  /* Zona de toque cómoda en Editar / Eliminar */
+  .acciones .peq { width: 44px; height: 44px; }
+  .btn-si, .btn-no { padding: 9px 16px; font-size: 0.95rem; }
+  .filtros-venta { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px 14px; padding: 0 16px 6px; scrollbar-width: none; }
+  .filtros-venta::-webkit-scrollbar { display: none; }
+  .filtros-venta .chip { flex: 0 0 auto; }
+}
+
+@media (max-width: 640px) {
+  .dato strong { font-size: 1.35rem; white-space: nowrap; }
+}
