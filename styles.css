@@ -1125,3 +1125,6 @@ html.oscuro .chip[data-categoria="Chiverías"]:not(.activo) svg { color: #ffc95e
   .cliente-datos { text-align: right; }
   .cliente-datos .dato-cliente { justify-content: flex-end; }
 }
+
+/* Al abrir la administración, las pestañas quedan debajo de la cabecera fija */
+.pestanas { scroll-margin-top: 90px; }

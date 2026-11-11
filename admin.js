@@ -45,6 +45,10 @@ async function prepararAdmin() {
   limpiarFormulario();
   iniciarVentasVistas();
   renderizarAdmin();
+
+  // Al entrar siempre se abre primero la pestaña de productos
+  mostrarPestana('productos');
+  document.querySelector('.pestanas').scrollIntoView({ block: 'start' });
 }
 
 async function entrarAdmin(e) {
