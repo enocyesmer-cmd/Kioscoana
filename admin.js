@@ -247,6 +247,7 @@ function textoCliente(cliente) {
   texto += '<span class="dato-cliente" title="Dirección">' + icono('ubicacion') + escapar(cliente.direccion) + '</span>';
   if (cliente.referencia) texto += '<span class="dato-cliente" title="Referencia">' + icono('etiqueta') + escapar(cliente.referencia) + '</span>';
   if (cliente.nota) texto += '<span class="dato-cliente" title="Nota">' + icono('nota') + escapar(cliente.nota) + '</span>';
+  if (cliente.pago) texto += '<span class="dato-cliente" title="Método de pago">' + icono('recibo') + escapar(cliente.pago) + '</span>';
   return texto + '</div>';
 }
 

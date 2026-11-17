@@ -371,11 +371,16 @@ async function finalizarPedido() {
     telefono: document.getElementById('cli-telefono').value.trim(),
     direccion: document.getElementById('cli-direccion').value.trim(),
     referencia: document.getElementById('cli-referencia').value.trim(),
-    nota: document.getElementById('cli-nota').value.trim()
+    nota: document.getElementById('cli-nota').value.trim(),
+    pago: document.getElementById('cli-pago').value
   };
 
   if (cliente.nombre === '' || cliente.telefono === '' || cliente.direccion === '') {
     avisar('Completa tu nombre, teléfono y dirección.');
+    return;
+  }
+  if (cliente.pago === '') {
+    avisar('Elige tu método de pago.');
     return;
   }
 
@@ -425,6 +430,7 @@ function mostrarExito(resultado, cliente) {
   mensaje += '\nDirección: ' + cliente.direccion;
   if (cliente.referencia !== '') mensaje += '\nReferencia: ' + cliente.referencia;
   if (cliente.nota !== '') mensaje += '\nNota: ' + cliente.nota;
+  if (cliente.pago) mensaje += '\nPago: ' + cliente.pago;
 
   let texto;
   if (resultado.guardado) texto = 'Tu pedido quedó registrado en Kiosco Ana.';

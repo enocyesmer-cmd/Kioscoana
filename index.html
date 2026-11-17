@@ -408,6 +408,13 @@
       <label>Nota para el pedido (opcional)
         <input type="text" id="cli-nota" placeholder="Ej: sin hielo">
       </label>
+      <label>Método de pago
+        <select id="cli-pago" required>
+          <option value="" disabled selected>Elige cómo vas a pagar</option>
+          <option value="Efectivo">Efectivo al recibir</option>
+          <option value="Tarjeta al recibir">Tarjeta al recibir (datáfono)</option>
+        </select>
+      </label>
       <div class="botones-form">
         <button type="submit" class="btn-principal"><svg class="icono" aria-hidden="true"><use href="#icon-check"/></svg> Realizar pedido</button>
         <button type="button" id="btn-volver-pedido" class="btn-secundario">Volver</button>

@@ -216,12 +216,16 @@ function leerCuerpo(req, limite) {
 
 // Pedidos de los clientes
 
+const METODOS_PAGO = ['Efectivo', 'Tarjeta al recibir'];
+
 function registrarPedido(datos) {
   const c = datos.cliente || {};
   const cliente = {
     nombre: texto(c.nombre, 80), telefono: texto(c.telefono, 30), direccion: texto(c.direccion, 200),
     referencia: texto(c.referencia, 150), nota: texto(c.nota, 150)
   };
+  // El método de pago va dentro del mismo campo JSON "cliente": la tabla Ventas no cambia
+  if (METODOS_PAGO.indexOf(c.pago) !== -1) cliente.pago = c.pago;
   if (cliente.nombre === '' || cliente.direccion === '' || cliente.telefono.length < 8) {
     return { codigo: 400, cuerpo: { ok: false, error: 'Completa tu nombre, teléfono y dirección.' } };
   }
