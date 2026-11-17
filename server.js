@@ -488,6 +488,7 @@ const ARCHIVOS_PUBLICOS = {
   '/app.js': 'text/javascript; charset=utf-8',
   '/animaciones.css': 'text/css; charset=utf-8',
   '/animaciones.js': 'text/javascript; charset=utf-8',
+  '/abrir-tienda.js': 'text/javascript; charset=utf-8',
   '/Logo.png': 'image/png',
   '/lib/sql-wasm.js': 'text/javascript; charset=utf-8',
   '/lib/sql-wasm.wasm': 'application/wasm'
